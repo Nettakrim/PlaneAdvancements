@@ -218,6 +218,6 @@ public class PlaneAdvancementsClient implements ClientModInitializer {
 			} catch (IOException e) {
 				LOGGER.info("Failed to save file to {} {}", configDir, e);
 			}
-		}, Util.getMainWorkerExecutor().named("saveStable"));
+		}, Util.getMainWorkerExecutor());
 	}
 }

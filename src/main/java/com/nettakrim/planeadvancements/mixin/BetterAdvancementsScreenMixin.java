@@ -23,6 +23,7 @@ import java.util.Map;
 @Pseudo
 @Mixin(targets = "betteradvancements.common.gui.BetterAdvancementsScreen", remap = false)
 public class BetterAdvancementsScreenMixin extends Screen {
+    @Shadow private float zoom;
     @Shadow private int internalWidth;
     @Shadow private int internalHeight;
 
@@ -86,7 +87,7 @@ public class BetterAdvancementsScreenMixin extends Screen {
             return;
         }
         AdvancementTabInterface selectedTab = getSelectedTab();
-        PlaneAdvancementsClient.draggedWidget.planeAdvancements$getTreePos().add((float)deltaX/BetterAdvancementsScreenAccessor.getZoom(), (float)deltaY/BetterAdvancementsScreenAccessor.getZoom());
+        PlaneAdvancementsClient.draggedWidget.planeAdvancements$getTreePos().add((float)deltaX/this.zoom, (float)deltaY/this.zoom);
         PlaneAdvancementsClient.draggedWidget.planeAdvancements$updatePos();
         assert selectedTab != null;
         selectedTab.planeAdvancements$heatGraph();
