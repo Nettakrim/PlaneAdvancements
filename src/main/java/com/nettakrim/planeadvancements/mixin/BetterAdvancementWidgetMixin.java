@@ -48,7 +48,7 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
     @SuppressWarnings("ReferenceToMixin") // perhaps because it is Pseudo, it gives a warning despite being an Accessor
     @Unique protected BetterDisplayInfoAccessor betterDisplayInfoAccessor;
 
-    @Shadow public abstract boolean isMouseOver(double scrollX, double scrollY, double mouseX, double mouseY, float zoom);
+    @Shadow public abstract boolean isMouseOver(double scrollX, double scrollY, double mouseX, double mouseY);
 
     @Shadow public abstract void drawConnectivity(DrawContext context, int x, int y, boolean border);
 
@@ -160,7 +160,7 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
 
     @Override
     public boolean planeAdvancements$isHovering(double originX, double originY, int mouseX, int mouseY) {
-        return isMouseOver(originX, originY, mouseX, mouseY, BetterAdvancementsScreenAccessor.getZoom());
+        return isMouseOver(originX, originY, mouseX, mouseY);
     }
 
     @Override

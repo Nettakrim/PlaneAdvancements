@@ -58,7 +58,7 @@ public abstract class BetterAdvancementTabMixin implements AdvancementTabInterfa
     }
 
     @Inject(at = @At("HEAD"), method = "drawContents", remap = true)
-    private void render(DrawContext context, int left, int top, int width, int height, float zoom, CallbackInfo ci) {
+    private void render(DrawContext context, int left, int top, int width, int height, CallbackInfo ci) {
         // shadowing centered is inconsistent, for some reason
         if (temperature == -1) {
             planeAdvancements$heatGraph();
