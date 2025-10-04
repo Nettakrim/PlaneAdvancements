@@ -59,7 +59,7 @@ public class PlaneAdvancementsClient implements ClientModInitializer {
 
 	public static final Map<Advancement, TreePosition> positions = new HashMap<>();
 
-	public static final AdvancementDisplay mergedDisplay = new AdvancementDisplay(ItemStack.EMPTY, Text.translatable(PlaneAdvancementsClient.MOD_ID+".merged_title"), Text.translatable(PlaneAdvancementsClient.MOD_ID+".merged_description"), Optional.of(new AssetInfo(Identifier.of(MOD_ID,"merged_background"))), AdvancementFrame.CHALLENGE, false, false, false);
+	public static final AdvancementDisplay mergedDisplay = new AdvancementDisplay(ItemStack.EMPTY, Text.translatable(PlaneAdvancementsClient.MOD_ID+".merged_title"), Text.translatable(PlaneAdvancementsClient.MOD_ID+".merged_description"), Optional.of(new AssetInfo.TextureAssetInfo(Identifier.of(MOD_ID,"merged_background"))), AdvancementFrame.CHALLENGE, false, false, false);
 	public static final Advancement mergedAdvancement = new Advancement(Optional.empty(), Optional.of(mergedDisplay), AdvancementRewards.NONE, Map.of(), AdvancementRequirements.EMPTY, false);
 	public static final AdvancementEntry mergedEntry = new AdvancementEntry(Identifier.of(PlaneAdvancementsClient.MOD_ID, "merged"), mergedAdvancement);
 

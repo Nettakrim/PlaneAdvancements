@@ -6,6 +6,7 @@ import com.nettakrim.planeadvancements.AdvancementWidgetInterface;
 import com.nettakrim.planeadvancements.PlaneAdvancementsClient;
 import com.nettakrim.planeadvancements.TreeType;
 import net.minecraft.advancement.AdvancementEntry;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -40,13 +41,13 @@ public class BetterAdvancementsScreenMixin extends Screen {
     }
 
     @Inject(at = @At("HEAD"), method = {"mouseClicked", "method_25402"}, cancellable = true, remap = true)
-    void click(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
+    void click(Click click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
         AdvancementTabInterface selectedTab = getSelectedTab();
 
-        if (selectedTab == null || button != 1) {
+        if (selectedTab == null || click.button() != 1) {
             PlaneAdvancementsClient.clearUIHover();
             if (PlaneAdvancementsClient.hoveredUI()) {
-                super.mouseClicked(mouseX, mouseY, button);
+                super.mouseClicked(click, doubled);
                 cir.setReturnValue(null);
             }
             return;
@@ -58,8 +59,8 @@ public class BetterAdvancementsScreenMixin extends Screen {
 
         double panX = selectedTab.planeAdvancements$getPanX();
         double panY = selectedTab.planeAdvancements$getPanY();
-        int x = MathHelper.floor(mouseX - left - PADDING);
-        int y = MathHelper.floor(mouseY - top - 2*PADDING);
+        int x = MathHelper.floor(click.x() - left - PADDING);
+        int y = MathHelper.floor(click.y() - top - 2*PADDING);
 
         for (AdvancementWidgetInterface widget : selectedTab.planeAdvancements$getWidgets().values()) {
             if (widget.planeAdvancements$isHovering(panX, panY, x, y)) {
@@ -70,23 +71,23 @@ public class BetterAdvancementsScreenMixin extends Screen {
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(Click click) {
         if (PlaneAdvancementsClient.draggedWidget != null) {
             PlaneAdvancementsClient.draggedWidget = null;
         }
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(click);
     }
 
     @Inject(at = @At("HEAD"), method = {"mouseDragged", "method_25403"}, cancellable = true, remap = true)
-    void drag(double mouseX, double mouseY, int button, double deltaX, double deltaY, CallbackInfoReturnable<Boolean> cir) {
+    void drag(Click click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
         if (PlaneAdvancementsClient.draggedWidget == null || PlaneAdvancementsClient.treeType != TreeType.SPRING) {
             if (PlaneAdvancementsClient.selectedUI()) {
-                cir.setReturnValue(super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY));
+                cir.setReturnValue(super.mouseDragged(click, offsetX, offsetY));
             }
             return;
         }
         AdvancementTabInterface selectedTab = getSelectedTab();
-        PlaneAdvancementsClient.draggedWidget.planeAdvancements$getTreePos().add((float)deltaX/BetterAdvancementsScreenAccessor.getZoom(), (float)deltaY/BetterAdvancementsScreenAccessor.getZoom());
+        PlaneAdvancementsClient.draggedWidget.planeAdvancements$getTreePos().add((float)offsetX/BetterAdvancementsScreenAccessor.getZoom(), (float)offsetY/BetterAdvancementsScreenAccessor.getZoom());
         PlaneAdvancementsClient.draggedWidget.planeAdvancements$updatePos();
         assert selectedTab != null;
         selectedTab.planeAdvancements$heatGraph();
