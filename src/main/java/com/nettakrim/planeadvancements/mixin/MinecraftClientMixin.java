@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MinecraftClient.class)
 public class MinecraftClientMixin {
-    @Inject(method = "disconnect", at = @At("RETURN"))
+    @Inject(method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;ZZ)V", at = @At("RETURN"))
     private void saveSpace(CallbackInfo ci) {
         PlaneAdvancementsClient.positions.clear();
     }
