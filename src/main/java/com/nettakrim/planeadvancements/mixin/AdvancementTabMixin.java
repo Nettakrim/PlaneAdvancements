@@ -285,18 +285,20 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
     @Unique
     private int planeAdvancements$getWidth() {
         if (CompatMode.getCompatMode() == CompatMode.FULLSCREEN) {
-            return ((FullscreenInterface)screen).advancementsfullscreen$getWindowWidth(false);
+            FullscreenInterface i = (FullscreenInterface)screen;
+            return (i._advancements_fullscreen_getFullscreenWindowWidth() >> 1);
         } else {
-            return 117;
+            return 117; //((252) >> 1)-9;
         }
     }
 
     @Unique
     private int planeAdvancements$getHeight() {
         if (CompatMode.getCompatMode() == CompatMode.FULLSCREEN) {
-            return ((FullscreenInterface)screen).advancementsfullscreen$getWindowHeight(false);
+            FullscreenInterface i = (FullscreenInterface)screen;
+            return (i._advancements_fullscreen_getFullscreenWindowHeight() >> 1);
         } else {
-            return 56;
+            return 57; //((140) >> 1)-13; (not sure why this isnt also -18 ???)
         }
     }
 }

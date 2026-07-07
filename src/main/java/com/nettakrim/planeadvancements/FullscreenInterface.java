@@ -1,6 +1,6 @@
 package com.nettakrim.planeadvancements;
 
 public interface FullscreenInterface {
-    int advancementsfullscreen$getWindowWidth(boolean isWithBorder);
-    int advancementsfullscreen$getWindowHeight(boolean isWithBorder);
+    int _advancements_fullscreen_getFullscreenWindowWidth();
+    int _advancements_fullscreen_getFullscreenWindowHeight();
 }

@@ -50,8 +50,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Fullscre
         int x;
         int y;
         if (CompatMode.getCompatMode() == CompatMode.FULLSCREEN) {
-            x = Mth.floor(click.x()-((this.width - advancementsfullscreen$getWindowWidth(false)) >> 1));
-            y = Mth.floor(click.y()-((this.height - advancementsfullscreen$getWindowHeight(false)) >> 1));
+            x = Mth.floor(click.x()-((this.width - _advancements_fullscreen_getFullscreenWindowWidth()) >> 1)-9);
+            y = Mth.floor(click.y()-((this.height - _advancements_fullscreen_getFullscreenWindowHeight()) >> 1)-18);
         } else {
             x = Mth.floor(click.x()-((this.width - 252) >> 1)-9);
             y = Mth.floor(click.y()-((this.height - 140) >> 1)-18);

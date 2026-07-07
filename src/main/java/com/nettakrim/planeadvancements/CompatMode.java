@@ -19,7 +19,7 @@ public enum CompatMode {
             } else if (FabricLoader.getInstance().isModLoaded("paginatedadvancements")) {
                 // TODO: compat with https://modrinth.com/mod/paginatedadvancements
                 current = CompatMode.PAGINATED;
-            } else if (FabricLoader.getInstance().isModLoaded("advancementsfullscreen")) {
+            } else if (FabricLoader.getInstance().isModLoaded("advancements_fullscreen")) {
                 current = CompatMode.FULLSCREEN;
             } else {
                 current = CompatMode.VANILLA;
