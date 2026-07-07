@@ -119,7 +119,7 @@ public abstract class BetterAdvancementTabMixin implements AdvancementTabInterfa
         }
     }
 
-    // root cannot be shadowed, so cannot be @Mutable, however its only used here
+    // root cannot be shadowed, so cannot be @Mutable, however its only used here, so we can swap the object thats being used in the functions
     @ModifyReceiver(at = @At(value = "INVOKE", target = "Lbetteradvancements/common/gui/BetterAdvancementWidget;drawConnectivity(Lnet/minecraft/client/gui/DrawContext;IIZ)V"), method = "drawContents", remap = true)
     private @Coerce AdvancementWidgetInterface replaceLineDrawer(@Coerce AdvancementWidgetInterface receiver, DrawContext context, int x, int y, boolean border) {
         return root;
