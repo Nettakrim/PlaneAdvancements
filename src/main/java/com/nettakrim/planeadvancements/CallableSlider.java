@@ -1,16 +1,15 @@
 package com.nettakrim.planeadvancements;
 
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.text.Text;
-
 import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.network.chat.Component;
 
-public class CallableSlider extends SliderWidget {
+public class CallableSlider extends AbstractSliderButton {
     private final DoubleConsumer consumer;
-    private final Supplier<Text> textSupplier;
+    private final Supplier<Component> textSupplier;
 
-    public CallableSlider(int x, int y, int width, int height, Supplier<Text> textSupplier, double value, DoubleConsumer consumer) {
+    public CallableSlider(int x, int y, int width, int height, Supplier<Component> textSupplier, double value, DoubleConsumer consumer) {
         super(x, y, width, height, textSupplier.get(), value);
         this.consumer = consumer;
         this.textSupplier = textSupplier;

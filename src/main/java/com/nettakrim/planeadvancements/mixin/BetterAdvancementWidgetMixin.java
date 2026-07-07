@@ -5,13 +5,6 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.nettakrim.planeadvancements.*;
-import net.minecraft.advancement.AdvancementDisplay;
-import net.minecraft.advancement.AdvancementProgress;
-import net.minecraft.advancement.PlacedAdvancement;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 import org.spongepowered.asm.mixin.*;
@@ -21,6 +14,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
+import net.minecraft.advancements.AdvancementNode;
+import net.minecraft.advancements.AdvancementProgress;
+import net.minecraft.advancements.DisplayInfo;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
@@ -35,8 +35,8 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
     private AdvancementWidgetInterface parent;
     @Shadow @Final private List<AdvancementWidgetInterface> children;
 
-    @Shadow @Final private AdvancementDisplay displayInfo;
-    @Shadow @Final private PlacedAdvancement advancementNode;
+    @Shadow @Final private DisplayInfo displayInfo;
+    @Shadow @Final private AdvancementNode advancementNode;
 
     @Unique Vector2f defaultPos;
     @Unique Vector2f gridPos;
@@ -50,13 +50,13 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
 
     @Shadow public abstract boolean isMouseOver(double scrollX, double scrollY, double mouseX, double mouseY, float zoom);
 
-    @Shadow public abstract void drawConnectivity(DrawContext context, int x, int y, boolean border);
+    @Shadow public abstract void drawConnectivity(GuiGraphics context, int x, int y, boolean border);
 
     @Inject(at = @At("TAIL"), method = "<init>", remap = true)
-    void initPos(@Coerce AdvancementTabInterface tab, MinecraftClient client, PlacedAdvancement advancement, AdvancementDisplay display, CallbackInfo ci) {
+    void initPos(@Coerce AdvancementTabInterface tab, Minecraft client, AdvancementNode advancement, DisplayInfo display, CallbackInfo ci) {
         defaultPos = new Vector2f(x, y);
         gridPos = new Vector2f(x, y);
-        treePos = PlaneAdvancementsClient.positions.computeIfAbsent(advancement.getAdvancement(), k -> new TreePosition());
+        treePos = PlaneAdvancementsClient.positions.computeIfAbsent(advancement.advancement(), k -> new TreePosition());
 
         try {
             //noinspection ReferenceToMixin
@@ -65,7 +65,7 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
     }
 
     @WrapMethod(method = "drawConnectivity", remap = true)
-    private void removeGridRoots(DrawContext context, int x, int y, boolean border, Operation<Void> original) {
+    private void removeGridRoots(GuiGraphics context, int x, int y, boolean border, Operation<Void> original) {
         // remove root lines for grid mode
         if (isClusterRoot && PlaneAdvancementsClient.treeType == TreeType.GRID) {
             for (AdvancementWidgetInterface advancementWidget : children) {
@@ -78,7 +78,7 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
     }
 
     @WrapMethod(method = "drawConnection", remap = true)
-    private void drawLines(DrawContext context, @Coerce AdvancementWidgetInterface parent, int x, int y, boolean border, Operation<Void> original) {
+    private void drawLines(GuiGraphics context, @Coerce AdvancementWidgetInterface parent, int x, int y, boolean border, Operation<Void> original) {
         if (PlaneAdvancementsClient.getCurrentLineType() == LineType.DEFAULT) {
             original.call(context, parent, x, y, border);
             return;
@@ -98,10 +98,10 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
         return original;
     }
 
-    @ModifyExpressionValue(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementObtainedStatus;getFrameTexture(Lnet/minecraft/advancement/AdvancementFrame;)Lnet/minecraft/util/Identifier;"), method = {"draw","drawHover"}, remap = true)
+    @ModifyExpressionValue(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/advancements/AdvancementWidgetType;frameSprite(Lnet/minecraft/advancements/AdvancementType;)Lnet/minecraft/resources/Identifier;"), method = {"draw","drawHover"}, remap = true)
     private Identifier replaceMergeRoot(Identifier original) {
         if (PlaneAdvancementsClient.isMergedAndSpring() && parent == null) {
-            return Identifier.of(PlaneAdvancementsClient.MOD_ID,"merged");
+            return Identifier.fromNamespaceAndPath(PlaneAdvancementsClient.MOD_ID,"merged");
         }
         return original;
     }
@@ -135,10 +135,10 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
     public void planeAdvancements$updatePos() {
         Vector2f pos = planeAdvancements$getCurrentPos();
 
-        if (this.x != MathHelper.floor(pos.x) && this.x != MathHelper.ceil(pos.x)) {
+        if (this.x != Mth.floor(pos.x) && this.x != Mth.ceil(pos.x)) {
             this.x = Math.round(pos.x);
         }
-        if (this.y != MathHelper.floor(pos.y) && this.y != MathHelper.ceil(pos.y)) {
+        if (this.y != Mth.floor(pos.y) && this.y != Mth.ceil(pos.y)) {
             this.y = Math.round(pos.y);
         }
     }
@@ -164,12 +164,12 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
     }
 
     @Override
-    public AdvancementDisplay planeAdvancements$getDisplay() {
+    public DisplayInfo planeAdvancements$getDisplay() {
         return displayInfo;
     }
 
     @Override
-    public PlacedAdvancement planeAdvancements$getPlaced() {
+    public AdvancementNode planeAdvancements$getPlaced() {
         return advancementNode;
     }
 
@@ -211,7 +211,7 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
     }
 
     @Override
-    public void planeAdvancements$renderLines(DrawContext context, int x, int y, boolean border) {
+    public void planeAdvancements$renderLines(GuiGraphics context, int x, int y, boolean border) {
         drawConnectivity(context, x, y, border);
     }
 }

@@ -12,19 +12,19 @@ import net.fabricmc.api.ClientModInitializer;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.advancement.*;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.SliderWidget;
+import net.minecraft.advancements.*;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.core.ClientAsset;
+import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
-import net.minecraft.data.DataWriter;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.AssetInfo;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,17 +51,17 @@ public class PlaneAdvancementsClient implements ClientModInitializer {
 
 	public static AdvancementWidgetInterface draggedWidget;
 
-	public static ButtonWidget treeButton;
-	public static ButtonWidget lineButton;
-	public static SliderWidget repulsionSlider;
-	public static SliderWidget gridWidthSlider;
-	public static ButtonWidget mergedButton;
+	public static Button treeButton;
+	public static Button lineButton;
+	public static AbstractSliderButton repulsionSlider;
+	public static AbstractSliderButton gridWidthSlider;
+	public static Button mergedButton;
 
 	public static final Map<Advancement, TreePosition> positions = new HashMap<>();
 
-	public static final AdvancementDisplay mergedDisplay = new AdvancementDisplay(ItemStack.EMPTY, Text.translatable(PlaneAdvancementsClient.MOD_ID+".merged_title"), Text.translatable(PlaneAdvancementsClient.MOD_ID+".merged_description"), Optional.of(new AssetInfo.TextureAssetInfo(Identifier.of(MOD_ID,"merged_background"))), AdvancementFrame.CHALLENGE, false, false, false);
-	public static final Advancement mergedAdvancement = new Advancement(Optional.empty(), Optional.of(mergedDisplay), AdvancementRewards.NONE, Map.of(), AdvancementRequirements.EMPTY, false);
-	public static final AdvancementEntry mergedEntry = new AdvancementEntry(Identifier.of(PlaneAdvancementsClient.MOD_ID, "merged"), mergedAdvancement);
+	public static final DisplayInfo mergedDisplay = new DisplayInfo(ItemStack.EMPTY, Component.translatable(PlaneAdvancementsClient.MOD_ID+".merged_title"), Component.translatable(PlaneAdvancementsClient.MOD_ID+".merged_description"), Optional.of(new ClientAsset.ResourceTexture(Identifier.fromNamespaceAndPath(MOD_ID,"merged_background"))), AdvancementType.CHALLENGE, false, false, false);
+	public static final Advancement mergedAdvancement = new Advancement(Optional.empty(), Optional.of(mergedDisplay), AdvancementRewards.EMPTY, Map.of(), AdvancementRequirements.EMPTY, false);
+	public static final AdvancementHolder mergedEntry = new AdvancementHolder(Identifier.fromNamespaceAndPath(PlaneAdvancementsClient.MOD_ID, "merged"), mergedAdvancement);
 
 	public static boolean mergedTreeNeedsUpdate;
 
@@ -70,33 +70,33 @@ public class PlaneAdvancementsClient implements ClientModInitializer {
 		loadConfig();
 		ClientLifecycleEvents.CLIENT_STOPPING.register((client) -> saveConfig());
 
-		treeButton = ButtonWidget.builder(getTreeText(), (w) -> cycleTreeType()).dimensions(0,0,16,16).build();
-		lineButton = ButtonWidget.builder(getLineText(), (w) -> cycleLineType()).dimensions(80,0,16,16).build();
-		repulsionSlider = new CallableSlider(16, 0, 64, 16, PlaneAdvancementsClient::getRepulsionText, MathHelper.sqrt(repulsion), (v) -> repulsion = Math.max((float)(v * v), 0.01f));
+		treeButton = Button.builder(getTreeText(), (w) -> cycleTreeType()).bounds(0,0,16,16).build();
+		lineButton = Button.builder(getLineText(), (w) -> cycleLineType()).bounds(80,0,16,16).build();
+		repulsionSlider = new CallableSlider(16, 0, 64, 16, PlaneAdvancementsClient::getRepulsionText, Mth.sqrt(repulsion), (v) -> repulsion = Math.max((float)(v * v), 0.01f));
 		gridWidthSlider = new CallableSlider(16, 0, 64, 16, PlaneAdvancementsClient::getGridWidthText, (gridWidth - 2) / 14d, (v) -> gridWidth = (int)Math.round(v*14 + 2));
-		mergedButton = ButtonWidget.builder(getMergedText(), (w) -> cycleMerged()).dimensions(96,0,16,16).build();
+		mergedButton = Button.builder(getMergedText(), (w) -> cycleMerged()).bounds(96,0,16,16).build();
 
 		setUIActive();
 	}
 
-	private static Text getTreeText() {
-		return Text.translatable(MOD_ID+".tree."+treeType.name().toLowerCase(Locale.ROOT));
+	private static Component getTreeText() {
+		return Component.translatable(MOD_ID+".tree."+treeType.name().toLowerCase(Locale.ROOT));
 	}
 
-	private static Text getLineText() {
-		return Text.translatable(MOD_ID+".line."+(angledLines ? "rotated" : "smart"));
+	private static Component getLineText() {
+		return Component.translatable(MOD_ID+".line."+(angledLines ? "rotated" : "smart"));
 	}
 
-	private static Text getRepulsionText() {
-		return Text.translatable(MOD_ID+".repulsion", repulsion <= 0.01f ? "0.0" : String.valueOf(MathHelper.sqrt(repulsion)+0.01f).substring(0,3));
+	private static Component getRepulsionText() {
+		return Component.translatable(MOD_ID+".repulsion", repulsion <= 0.01f ? "0.0" : String.valueOf(Mth.sqrt(repulsion)+0.01f).substring(0,3));
 	}
 
-	private static Text getGridWidthText() {
-		return Text.translatable(MOD_ID+".grid_width", gridWidth);
+	private static Component getGridWidthText() {
+		return Component.translatable(MOD_ID+".grid_width", gridWidth);
 	}
 
-	private static Text getMergedText() {
-		return Text.translatable(MOD_ID+(merged ? ".merged" : ".unmerged"));
+	private static Component getMergedText() {
+		return Component.translatable(MOD_ID+(merged ? ".merged" : ".unmerged"));
 	}
 
 	public static LineType getCurrentLineType() {
@@ -135,7 +135,7 @@ public class PlaneAdvancementsClient implements ClientModInitializer {
 		mergedButton.setFocused(false);
 	}
 
-	public static void renderUI(DrawContext context, int mouseX, int mouseY, float tickDelta) {
+	public static void renderUI(GuiGraphics context, int mouseX, int mouseY, float tickDelta) {
 		treeButton.render(context, mouseX, mouseY, tickDelta);
 		if (treeType == TreeType.SPRING) {
 			lineButton.render(context, mouseX, mouseY, tickDelta);
@@ -203,7 +203,7 @@ public class PlaneAdvancementsClient implements ClientModInitializer {
 				try {
 					jsonWriter.setSerializeNulls(false);
 					jsonWriter.setIndent("");
-					JsonHelper.writeSorted(jsonWriter, dataCodec.encodeStart(JsonOps.INSTANCE, new Data(treeType.ordinal(), repulsion, angledLines, gridWidth, merged)).getOrThrow(), DataProvider.JSON_KEY_SORTING_COMPARATOR);
+					GsonHelper.writeValue(jsonWriter, dataCodec.encodeStart(JsonOps.INSTANCE, new Data(treeType.ordinal(), repulsion, angledLines, gridWidth, merged)).getOrThrow(), DataProvider.KEY_COMPARATOR);
 				} catch (Throwable var9) {
 					try {
 						jsonWriter.close();
@@ -215,10 +215,10 @@ public class PlaneAdvancementsClient implements ClientModInitializer {
 				}
 
 				jsonWriter.close();
-				DataWriter.UNCACHED.write(configDir, byteArrayOutputStream.toByteArray(), hashingOutputStream.hash());
+				CachedOutput.NO_CACHE.writeIfNeeded(configDir, byteArrayOutputStream.toByteArray(), hashingOutputStream.hash());
 			} catch (IOException e) {
 				LOGGER.info("Failed to save file to {} {}", configDir, e);
 			}
-		}, Util.getMainWorkerExecutor().named("saveStable"));
+		}, Util.backgroundExecutor().forName("saveStable"));
 	}
 }
