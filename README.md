@@ -25,4 +25,4 @@ Use Plane Advancements with [Better Advancements](https://modrinth.com/mod/bette
 
 It also works with [AdvancementsFullscreen](https://modrinth.com/mod/advancementsfullscreen), however it's spacing with the ui isn't quite as nice
 
-It currently does *not* work with [Paginated Advancements](https://modrinth.com/mod/paginatedadvancements)
+It (currently?) does *not* work with [Paginated Advancements](https://modrinth.com/mod/paginatedadvancements) or [AdvancementInfo Reloaded](https://modrinth.com/mod/advancements-reloaded)

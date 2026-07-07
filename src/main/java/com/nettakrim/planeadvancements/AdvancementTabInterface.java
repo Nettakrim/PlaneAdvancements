@@ -1,11 +1,10 @@
 package com.nettakrim.planeadvancements;
 
-import net.minecraft.advancement.AdvancementEntry;
-
 import java.util.*;
+import net.minecraft.advancements.AdvancementHolder;
 
 public interface AdvancementTabInterface {
-    Map<AdvancementEntry, AdvancementWidgetInterface> planeAdvancements$getWidgets();
+    Map<AdvancementHolder, AdvancementWidgetInterface> planeAdvancements$getWidgets();
     AdvancementWidgetInterface planeAdvancements$getRoot();
 
     double planeAdvancements$getPanX();

@@ -1,12 +1,12 @@
 package com.nettakrim.planeadvancements;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import net.minecraft.util.math.MathHelper;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 
 import java.util.*;
+import net.minecraft.util.Mth;
 
 public class AdvancementCluster {
     public final Vector2f pos;
@@ -22,7 +22,7 @@ public class AdvancementCluster {
         Vector3f size = getClusterSize(root, ignoreChildrenFrom);
 
         this.pos = new Vector2f(0,0);
-        this.size = new Vector2i(MathHelper.ceil(size.x), MathHelper.ceil((size.z-size.y)+1));
+        this.size = new Vector2i(Mth.ceil(size.x), Mth.ceil((size.z-size.y)+1));
         this.offsetY = -size.y;
         this.root = root;
 
@@ -313,7 +313,7 @@ public class AdvancementCluster {
                 AdvancementWidgetInterface parentParent = rootParent.planeAdvancements$getParent();
                 if (parentParent != null) {
                     Vector2f v = rootParent.planeAdvancements$getTreePos().sub(parentParent.planeAdvancements$getTreePos(), new Vector2f());
-                    rootAngle = (float) MathHelper.atan2(v.y, v.x);
+                    rootAngle = (float) Mth.atan2(v.y, v.x);
                 } else {
                     rootAngle = 0;
                 }
@@ -325,10 +325,10 @@ public class AdvancementCluster {
                 }
                 Vector2f v = rootParent.planeAdvancements$getTreePos().sub(validSibling.planeAdvancements$getTreePos(), new Vector2f());
                 PlaneAdvancementsClient.LOGGER.info(validSiblings+" "+v);
-                rootAngle = (float) MathHelper.atan2(v.y, v.x) + MathHelper.PI/validSiblings;
+                rootAngle = (float) Mth.atan2(v.y, v.x) + Mth.PI/validSiblings;
             }
 
-            root.planeAdvancements$getTreePos().set(MathHelper.cos(rootAngle)*64, MathHelper.sin(rootAngle)*64).add(rootParent.planeAdvancements$getTreePos());
+            root.planeAdvancements$getTreePos().set(Mth.cos(rootAngle)*64, Mth.sin(rootAngle)*64).add(rootParent.planeAdvancements$getTreePos());
         } else {
             root.planeAdvancements$getTreePos().set(0);
         }
@@ -346,13 +346,13 @@ public class AdvancementCluster {
                 AdvancementWidgetInterface child = children.get(i);
                 float t;
                 if (widget.planeAdvancements$getParent() == null) {
-                    t = (MathHelper.TAU * i) / children.size();
+                    t = (Mth.TWO_PI * i) / children.size();
                 } else if (children.size() > 1) {
-                    t = angle + MathHelper.HALF_PI*(i/(children.size()-1f) - 0.5f);
+                    t = angle + Mth.HALF_PI*(i/(children.size()-1f) - 0.5f);
                 } else {
                     t = angle;
                 }
-                child.planeAdvancements$getTreePos().set(MathHelper.cos(t)*64, MathHelper.sin(t)*64).add(widget.planeAdvancements$getTreePos());
+                child.planeAdvancements$getTreePos().set(Mth.cos(t)*64, Mth.sin(t)*64).add(widget.planeAdvancements$getTreePos());
                 solve.push(new TreeNode(child, t));
             }
         }
