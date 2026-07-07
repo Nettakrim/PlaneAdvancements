@@ -34,6 +34,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Fullscre
 
     @Inject(at = @At("HEAD"), method = "mouseClicked", cancellable = true)
     void click(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
+        PlaneAdvancementsClient.draggedWidget = null;
+
         if (selectedTab == null || click.button() != 1) {
             PlaneAdvancementsClient.clearUIHover();
             if (PlaneAdvancementsClient.hoveredUI()) {
@@ -42,7 +44,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Fullscre
             }
             return;
         }
-        PlaneAdvancementsClient.draggedWidget = null;
         AdvancementTabInterface tab = (AdvancementTabInterface)selectedTab;
 
         double panX = tab.planeAdvancements$getPanX();
@@ -67,16 +68,14 @@ public abstract class AdvancementsScreenMixin extends Screen implements Fullscre
 
     @Override
     public boolean mouseReleased(@NonNull MouseButtonEvent click) {
-        if (PlaneAdvancementsClient.draggedWidget != null) {
-            PlaneAdvancementsClient.draggedWidget = null;
-        }
+        PlaneAdvancementsClient.draggedWidget = null;
         return super.mouseReleased(click);
     }
 
     @Inject(at = @At("HEAD"), method = "mouseDragged", cancellable = true)
     void drag(MouseButtonEvent click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
         if (PlaneAdvancementsClient.draggedWidget == null || PlaneAdvancementsClient.treeType != TreeType.SPRING) {
-            if (PlaneAdvancementsClient.selectedUI()) {
+            if (PlaneAdvancementsClient.hoveredUI()) {
                 cir.setReturnValue(super.mouseDragged(click, offsetX, offsetY));
             }
             return;

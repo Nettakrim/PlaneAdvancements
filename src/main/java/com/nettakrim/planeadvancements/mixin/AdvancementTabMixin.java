@@ -56,6 +56,9 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
     private void render(GuiGraphics context, int x, int y, CallbackInfo ci) {
         if (!centered) {
             planeAdvancements$heatGraph();
+            if (PlaneAdvancementsClient.treeType == TreeType.SPRING) {
+                planeAdvancements$centerPan(planeAdvancements$getWidth(), planeAdvancements$getHeight());
+            }
         }
 
         if (PlaneAdvancementsClient.isMergedAndSpring()) {
@@ -70,13 +73,11 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
 
         if (currentGridWidth != PlaneAdvancementsClient.gridWidth && PlaneAdvancementsClient.treeType == TreeType.GRID) {
             planeAdvancements$applyClusters(AdvancementCluster.getGridClusters(planeAdvancements$getRoot()));
-            planeAdvancements$updateRange(planeAdvancements$getWidth(), planeAdvancements$getHeight());
             planeAdvancements$centerPan(planeAdvancements$getWidth(), planeAdvancements$getHeight());
             currentGridWidth = PlaneAdvancementsClient.gridWidth;
         }
 
         if (currentType != PlaneAdvancementsClient.treeType) {
-            planeAdvancements$updateRange(planeAdvancements$getWidth(), planeAdvancements$getHeight());
             planeAdvancements$centerPan(planeAdvancements$getWidth(), planeAdvancements$getHeight());
         }
 
@@ -90,6 +91,7 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
         }
         temperature--;
 
+        // TODO: multithreading
         // always update spring graph forces, so that it can settle while not visible
         int steps = Mth.ceil(Mth.sqrt(temperature/10f));
         for (int i = 0; i < steps; i++) {
@@ -209,12 +211,14 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
 
     @Override
     public void planeAdvancements$centerPan(int width, int height) {
+        planeAdvancements$updateRange(width, height);
+
+        this.scrollX = width - ((this.maxX + this.minX) >> 1);
+        this.scrollY = height - ((this.maxY + this.minY) >> 1);
+
         if (CompatMode.getCompatMode() == CompatMode.FULLSCREEN) {
-            this.scrollX = (width - (maxX + minX)) >> 1;
-            this.scrollY = (height - (maxY + minY)) >> 1;
-        } else {
-            this.scrollX = width - ((this.maxX + this.minX) >> 1);
-            this.scrollY = height - ((this.maxY + this.minY) >> 1);
+            this.scrollX -= 16;
+            this.scrollY -= 16;
         }
     }
 
@@ -251,7 +255,6 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
         display = PlaneAdvancementsClient.mergedDisplay;
         rootNode = placedAdvancement;
 
-        planeAdvancements$updateRange(planeAdvancements$getWidth(), planeAdvancements$getHeight());
         planeAdvancements$centerPan(planeAdvancements$getWidth(), planeAdvancements$getHeight());
 
         planeAdvancements$heatGraph();
@@ -288,7 +291,7 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
             FullscreenInterface i = (FullscreenInterface)screen;
             return (i._advancements_fullscreen_getFullscreenWindowWidth() >> 1);
         } else {
-            return 117; //((252) >> 1)-9;
+            return 117;
         }
     }
 
@@ -298,7 +301,7 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
             FullscreenInterface i = (FullscreenInterface)screen;
             return (i._advancements_fullscreen_getFullscreenWindowHeight() >> 1);
         } else {
-            return 57; //((140) >> 1)-13; (not sure why this isnt also -18 ???)
+            return 56;
         }
     }
 }

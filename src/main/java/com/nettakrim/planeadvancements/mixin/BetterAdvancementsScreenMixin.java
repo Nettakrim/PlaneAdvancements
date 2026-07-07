@@ -43,6 +43,8 @@ public class BetterAdvancementsScreenMixin extends Screen {
 
     @Inject(at = @At("HEAD"), method = {"mouseClicked", "method_25402"}, cancellable = true, remap = true)
     void click(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
+        PlaneAdvancementsClient.draggedWidget = null;
+
         AdvancementTabInterface selectedTab = getSelectedTab();
 
         if (selectedTab == null || click.button() != 1) {
@@ -53,7 +55,6 @@ public class BetterAdvancementsScreenMixin extends Screen {
             }
             return;
         }
-        PlaneAdvancementsClient.draggedWidget = null;
 
         int left = SIDE + (width - internalWidth) / 2;
         int top = TOP + (height - internalHeight) / 2;
@@ -73,16 +74,14 @@ public class BetterAdvancementsScreenMixin extends Screen {
 
     @Override
     public boolean mouseReleased(@NonNull MouseButtonEvent click) {
-        if (PlaneAdvancementsClient.draggedWidget != null) {
-            PlaneAdvancementsClient.draggedWidget = null;
-        }
+        PlaneAdvancementsClient.draggedWidget = null;
         return super.mouseReleased(click);
     }
 
     @Inject(at = @At("HEAD"), method = {"mouseDragged", "method_25403"}, cancellable = true, remap = true)
     void drag(MouseButtonEvent click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
         if (PlaneAdvancementsClient.draggedWidget == null || PlaneAdvancementsClient.treeType != TreeType.SPRING) {
-            if (PlaneAdvancementsClient.selectedUI()) {
+            if (PlaneAdvancementsClient.hoveredUI()) {
                 cir.setReturnValue(super.mouseDragged(click, offsetX, offsetY));
             }
             return;
