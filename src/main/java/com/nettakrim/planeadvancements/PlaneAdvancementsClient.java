@@ -145,7 +145,7 @@ public class PlaneAdvancementsClient implements ClientModInitializer {
 		treeButton.extractRenderState(graphics, mouseX, mouseY, tickDelta);
 		if (treeType == TreeType.SPRING) {
 			lineButton.extractRenderState(graphics, mouseX, mouseY, tickDelta);
-			repulsionSlider.extractWidgetRenderState(graphics, mouseX, mouseY, tickDelta);
+			repulsionSlider.extractRenderState(graphics, mouseX, mouseY, tickDelta);
 			mergedButton.extractRenderState(graphics, mouseX, mouseY, tickDelta);
 		} if (treeType == TreeType.GRID) {
 			gridWidthSlider.extractRenderState(graphics, mouseX, mouseY, tickDelta);
