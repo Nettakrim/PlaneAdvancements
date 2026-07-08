@@ -5,6 +5,7 @@ import com.nettakrim.planeadvancements.AdvancementTabInterface;
 import com.nettakrim.planeadvancements.AdvancementWidgetInterface;
 import com.nettakrim.planeadvancements.PlaneAdvancementsClient;
 import com.nettakrim.planeadvancements.TreeType;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.lang.reflect.Field;
 import java.util.Map;
 import net.minecraft.advancements.AdvancementHolder;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -23,7 +23,7 @@ import net.minecraft.util.Mth;
 
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "betteradvancements.common.gui.BetterAdvancementsScreen", remap = false)
+@Mixin(targets = "betteradvancements.common.gui.BetterAdvancementsScreen")
 public class BetterAdvancementsScreenMixin extends Screen {
     @Shadow private int internalWidth;
     @Shadow private int internalHeight;
@@ -41,16 +41,16 @@ public class BetterAdvancementsScreenMixin extends Screen {
         super(title);
     }
 
-    @Inject(at = @At("HEAD"), method = {"mouseClicked", "method_25402"}, cancellable = true, remap = true)
-    void click(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(at = @At("HEAD"), method = "mouseClicked", cancellable = true)
+    void click(MouseButtonEvent event, boolean isDoubleClick, CallbackInfoReturnable<Boolean> cir) {
         PlaneAdvancementsClient.draggedWidget = null;
 
         AdvancementTabInterface selectedTab = getSelectedTab();
 
-        if (selectedTab == null || click.button() != 1) {
+        if (selectedTab == null || event.button() != 1) {
             PlaneAdvancementsClient.clearUIHover();
             if (PlaneAdvancementsClient.hoveredUI()) {
-                super.mouseClicked(click, doubled);
+                super.mouseClicked(event, isDoubleClick);
                 cir.setReturnValue(null);
             }
             return;
@@ -61,8 +61,8 @@ public class BetterAdvancementsScreenMixin extends Screen {
 
         double panX = selectedTab.planeAdvancements$getPanX();
         double panY = selectedTab.planeAdvancements$getPanY();
-        int x = Mth.floor(click.x() - left - PADDING);
-        int y = Mth.floor(click.y() - top - 2*PADDING);
+        int x = Mth.floor(event.x() - left - PADDING);
+        int y = Mth.floor(event.y() - top - 2*PADDING);
 
         for (AdvancementWidgetInterface widget : selectedTab.planeAdvancements$getWidgets().values()) {
             if (widget.planeAdvancements$isHovering(panX, panY, x, y)) {
@@ -73,33 +73,33 @@ public class BetterAdvancementsScreenMixin extends Screen {
     }
 
     @Override
-    public boolean mouseReleased(@NonNull MouseButtonEvent click) {
+    public boolean mouseReleased(@NonNull MouseButtonEvent event) {
         PlaneAdvancementsClient.draggedWidget = null;
-        return super.mouseReleased(click);
+        return super.mouseReleased(event);
     }
 
-    @Inject(at = @At("HEAD"), method = {"mouseDragged", "method_25403"}, cancellable = true, remap = true)
-    void drag(MouseButtonEvent click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(at = @At("HEAD"), method = "mouseDragged", cancellable = true)
+    void drag(MouseButtonEvent event, double mouseDeltaX, double mouseDeltaY, CallbackInfoReturnable<Boolean> cir) {
         if (PlaneAdvancementsClient.draggedWidget == null || PlaneAdvancementsClient.treeType != TreeType.SPRING) {
             if (PlaneAdvancementsClient.hoveredUI()) {
-                cir.setReturnValue(super.mouseDragged(click, offsetX, offsetY));
+                cir.setReturnValue(super.mouseDragged(event, mouseDeltaX, mouseDeltaY));
             }
             return;
         }
         AdvancementTabInterface selectedTab = getSelectedTab();
-        PlaneAdvancementsClient.draggedWidget.planeAdvancements$getTreePos().add((float)offsetX/BetterAdvancementsScreenAccessor.getZoom(), (float)offsetY/BetterAdvancementsScreenAccessor.getZoom());
+        PlaneAdvancementsClient.draggedWidget.planeAdvancements$getTreePos().add((float)mouseDeltaX/BetterAdvancementsScreenAccessor.getZoom(), (float)mouseDeltaY/BetterAdvancementsScreenAccessor.getZoom());
         PlaneAdvancementsClient.draggedWidget.planeAdvancements$updatePos();
         assert selectedTab != null;
         selectedTab.planeAdvancements$heatGraph();
         cir.setReturnValue(true);
     }
 
-    @Inject(at = @At("TAIL"), method = {"render", "method_25394"}, remap = true)
-    void render(GuiGraphics context, int mouseX, int mouseY, float tickDelta, CallbackInfo ci) {
-        PlaneAdvancementsClient.renderUI(context, mouseX, mouseY, tickDelta);
+    @Inject(at = @At("TAIL"), method = "extractRenderState")
+    void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
+        PlaneAdvancementsClient.renderUI(graphics, mouseX, mouseY, a);
     }
 
-    @ModifyExpressionValue(at = @At(value = "INVOKE", target = "Ljava/util/Map;size()I"), method = "renderWindow", remap = true)
+    @ModifyExpressionValue(at = @At(value = "INVOKE", target = "Ljava/util/Map;size()I"), method = "renderWindow")
     int hideTabs(int original) {
         if (PlaneAdvancementsClient.isMergedAndSpring()) {
             return 0;
@@ -107,8 +107,8 @@ public class BetterAdvancementsScreenMixin extends Screen {
         return original;
     }
 
-    @Inject(at = @At("HEAD"), method = {"render", "method_25394"}, remap = true)
-    void merge(GuiGraphics context, int mouseX, int mouseY, float tickDelta, CallbackInfo ci) {
+    @Inject(at = @At("HEAD"), method = "extractRenderState")
+    void merge(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
         AdvancementTabInterface selectedTab = getSelectedTab();
         if(selectedTab != null) {
             if (PlaneAdvancementsClient.isMergedAndSpring()) {
@@ -119,7 +119,7 @@ public class BetterAdvancementsScreenMixin extends Screen {
         }
     }
 
-    @Inject(at = @At("TAIL"), method = {"init", "method_25426"}, remap = true)
+    @Inject(at = @At("TAIL"), method = "init")
     void init(CallbackInfo ci) {
         addWidget(PlaneAdvancementsClient.treeButton);
         addWidget(PlaneAdvancementsClient.repulsionSlider);

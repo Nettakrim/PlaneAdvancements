@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Pseudo
-@Mixin(targets = "betteradvancements.common.gui.BetterAdvancementsScreen", remap = false)
+@Mixin(targets = "betteradvancements.common.gui.BetterAdvancementsScreen")
 public interface BetterAdvancementsScreenAccessor {
     @Accessor("zoom")
     static float getZoom() {

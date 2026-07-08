@@ -3,6 +3,7 @@ package com.nettakrim.planeadvancements.mixin;
 import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.nettakrim.planeadvancements.*;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
@@ -17,13 +18,12 @@ import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementNode;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "betteradvancements.common.gui.BetterAdvancementTab", remap = false)
+@Mixin(targets = "betteradvancements.common.gui.BetterAdvancementTab")
 public abstract class BetterAdvancementTabMixin implements AdvancementTabInterface {
     @Shadow @Final @Mutable private Map<AdvancementHolder, AdvancementWidgetInterface> widgets;
 
@@ -50,15 +50,15 @@ public abstract class BetterAdvancementTabMixin implements AdvancementTabInterfa
     @Unique private AdvancementWidgetInterface rootBackup = null;
     @Unique private Map<AdvancementHolder, AdvancementWidgetInterface> widgetsBackup = null;
 
-    @Inject(at = @At("TAIL"), method = "<init>", remap = true)
+    @Inject(at = @At("TAIL"), method = "<init>")
     private void init(Minecraft client, @Coerce Object screen, @Coerce Object type, int index, AdvancementNode root, DisplayInfo display, CallbackInfo ci) {
         try {
             this.root = (AdvancementWidgetInterface)this.getClass().getDeclaredField("root").get(this);
         } catch (Exception ignored) {}
     }
 
-    @Inject(at = @At("HEAD"), method = "drawContents", remap = true)
-    private void render(GuiGraphics context, int left, int top, int width, int height, float zoom, CallbackInfo ci) {
+    @Inject(at = @At("HEAD"), method = "drawContents")
+    private void render(GuiGraphicsExtractor graphics, int left, int top, int width, int height, float zoom, CallbackInfo ci) {
         // shadowing centered is inconsistent, for some reason
         if (temperature == -1) {
             planeAdvancements$heatGraph();
@@ -120,17 +120,17 @@ public abstract class BetterAdvancementTabMixin implements AdvancementTabInterfa
     }
 
     // root cannot be shadowed, so cannot be @Mutable, however its only used here, so we can swap the object thats being used in the functions
-    @ModifyReceiver(at = @At(value = "INVOKE", target = "Lbetteradvancements/common/gui/BetterAdvancementWidget;drawConnectivity(Lnet/minecraft/client/gui/GuiGraphics;IIZ)V"), method = "drawContents", remap = true)
-    private @Coerce AdvancementWidgetInterface replaceLineDrawer(@Coerce AdvancementWidgetInterface receiver, GuiGraphics context, int x, int y, boolean border) {
+    @ModifyReceiver(at = @At(value = "INVOKE", target = "Lbetteradvancements/common/gui/BetterAdvancementWidget;drawConnectivity(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIZ)V"), method = "drawContents")
+    private @Coerce AdvancementWidgetInterface replaceLineDrawer(@Coerce AdvancementWidgetInterface receiver, GuiGraphicsExtractor graphics, int x, int y, boolean border) {
         return root;
     }
 
-    @ModifyReceiver(at = @At(value = "INVOKE", target = "Lbetteradvancements/common/gui/BetterAdvancementWidget;draw(Lnet/minecraft/client/gui/GuiGraphics;II)V"), method = "drawContents", remap = true)
-    private @Coerce AdvancementWidgetInterface replaceWidgetDrawer(@Coerce AdvancementWidgetInterface receiver, GuiGraphics context, int x, int y) {
+    @ModifyReceiver(at = @At(value = "INVOKE", target = "Lbetteradvancements/common/gui/BetterAdvancementWidget;draw(Lnet/minecraft/client/gui/GuiGraphicsExtractor;II)V"), method = "drawContents")
+    private @Coerce AdvancementWidgetInterface replaceWidgetDrawer(@Coerce AdvancementWidgetInterface receiver, GuiGraphicsExtractor graphics, int x, int y) {
         return root;
     }
 
-    @Inject(at = @At("TAIL"), method = "scroll", remap = true)
+    @Inject(at = @At("TAIL"), method = "scroll")
     private void fixPan(double x, double y, int width, int height, CallbackInfo ci) {
         if (PlaneAdvancementsClient.treeType != TreeType.SPRING) {
             return;
@@ -144,7 +144,7 @@ public abstract class BetterAdvancementTabMixin implements AdvancementTabInterfa
         }
     }
 
-    @ModifyReturnValue(at = @At("RETURN"), method = "getTitle", remap = true)
+    @ModifyReturnValue(at = @At("RETURN"), method = "getTitle")
     private Component setTitle(Component original) {
         if (PlaneAdvancementsClient.isMergedAndSpring()) {
             return Component.translatable(PlaneAdvancementsClient.MOD_ID+".merged_tab_better");
@@ -152,12 +152,12 @@ public abstract class BetterAdvancementTabMixin implements AdvancementTabInterfa
         return original;
     }
 
-    @ModifyReturnValue(at = @At("RETURN"), method = "isMouseOver", remap = true)
+    @ModifyReturnValue(at = @At("RETURN"), method = "isMouseOver")
     private boolean hideTab(boolean original) {
         return original && !PlaneAdvancementsClient.isMergedAndSpring();
     }
 
-    @Inject(at = @At("TAIL"), method = "addWidget", remap = true)
+    @Inject(at = @At("TAIL"), method = "addWidget")
     private void widgetAdded(CallbackInfo callbackInfo) {
         treeNeedsUpdate = true;
         PlaneAdvancementsClient.mergedTreeNeedsUpdate = true;

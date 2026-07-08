@@ -1,12 +1,12 @@
 package com.nettakrim.planeadvancements;
 
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.joml.Matrix3x2fStack;
 import org.joml.Vector2f;
 
 import java.util.List;
 import net.minecraft.advancements.AdvancementNode;
 import net.minecraft.advancements.DisplayInfo;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 
 public interface AdvancementWidgetInterface {
@@ -70,22 +70,22 @@ public interface AdvancementWidgetInterface {
         }
     }
 
-    static void renderCustomLines(GuiGraphics context, int x, int y, int startX, int startY, int endX, int endY, boolean border, int innerColor) {
+    static void renderCustomLines(GuiGraphicsExtractor graphics, int x, int y, int startX, int startY, int endX, int endY, boolean background, int innerColor) {
         int offsetX = endX-startX;
         int offsetY = endY-startY;
 
-        Matrix3x2fStack matrixStack = context.pose();
+        Matrix3x2fStack matrixStack = graphics.pose();
         matrixStack.pushMatrix();
 
         if (PlaneAdvancementsClient.getCurrentLineType() == LineType.ROTATED) {
             matrixStack.translate(x+startX + 16.5f, y+startY + 13.5f);
             matrixStack.rotate((float)Math.atan2(offsetY, offsetX));
             int distance = Mth.floor(Mth.sqrt(offsetX*offsetX + offsetY*offsetY));
-            if (border) {
-                context.hLine(0, distance, -1, -16777216);
-                context.hLine(0, distance, 1, -16777216);
+            if (background) {
+                graphics.horizontalLine(0, distance, -1, -16777216);
+                graphics.horizontalLine(0, distance, 1, -16777216);
             } else {
-                context.hLine(0, distance, 0, innerColor);
+                graphics.horizontalLine(0, distance, 0, innerColor);
             }
         } else {
             matrixStack.translate(x+startX + 15.5f, y+startY + 12.5f);
@@ -97,16 +97,16 @@ public interface AdvancementWidgetInterface {
             int xLength = absX < 15 ? 0 : offsetX;
             int yLength = absY < 15 ? 0 : offsetY;
 
-            if (border) {
+            if (background) {
                 offsetX /= absX == 0 ? 1 : absX;
                 offsetY /= absY == 0 ? 1 : absY;
-                context.hLine(-offsetX, xLength+offsetX, yPos-1, -16777216);
-                context.hLine(-offsetX, xLength+offsetX, yPos+1, -16777216);
-                context.vLine(xPos-1, yLength+offsetY, -offsetY, -16777216);
-                context.vLine(xPos+1, yLength+offsetY, -offsetY, -16777216);
+                graphics.horizontalLine(-offsetX, xLength+offsetX, yPos-1, -16777216);
+                graphics.horizontalLine(-offsetX, xLength+offsetX, yPos+1, -16777216);
+                graphics.verticalLine(xPos-1, yLength+offsetY, -offsetY, -16777216);
+                graphics.verticalLine(xPos+1, yLength+offsetY, -offsetY, -16777216);
             } else {
-                context.hLine(0, xLength, yPos, innerColor);
-                context.vLine(xPos, yLength, 0, innerColor);
+                graphics.horizontalLine(0, xLength, yPos, innerColor);
+                graphics.verticalLine(xPos, yLength, 0, innerColor);
             }
         }
 
@@ -115,5 +115,5 @@ public interface AdvancementWidgetInterface {
 
     int planeAdvancements$getX();
     int planeAdvancements$getY();
-    void planeAdvancements$renderLines(GuiGraphics context, int x, int y, boolean border);
+    void planeAdvancements$renderLines(GuiGraphicsExtractor graphics, int x, int y, boolean background);
 }

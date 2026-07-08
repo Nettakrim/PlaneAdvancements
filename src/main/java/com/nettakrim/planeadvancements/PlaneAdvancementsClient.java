@@ -13,10 +13,12 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancements.*;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.core.ClientAsset;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.network.chat.Component;
@@ -24,7 +26,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +62,14 @@ public class PlaneAdvancementsClient implements ClientModInitializer {
 
 	public static final Map<Advancement, TreePosition> positions = new HashMap<>();
 
-	public static final DisplayInfo mergedDisplay = new DisplayInfo(ItemStack.EMPTY, Component.translatable(PlaneAdvancementsClient.MOD_ID+".merged_title"), Component.translatable(PlaneAdvancementsClient.MOD_ID+".merged_description"), Optional.of(new ClientAsset.ResourceTexture(Identifier.fromNamespaceAndPath(MOD_ID,"merged_background"))), AdvancementType.CHALLENGE, false, false, false);
+	public static final DisplayInfo mergedDisplay = new DisplayInfo(
+			// item cant be air, but it can be stone with the model of air
+			new ItemStackTemplate(Items.STONE, DataComponentPatch.builder().set(DataComponents.ITEM_MODEL, Identifier.withDefaultNamespace("air")).build()),
+			Component.translatable(PlaneAdvancementsClient.MOD_ID+".merged_title"),
+			Component.translatable(PlaneAdvancementsClient.MOD_ID+".merged_description"),
+			Optional.of(new ClientAsset.ResourceTexture(Identifier.fromNamespaceAndPath(MOD_ID,"merged_background"))),
+			AdvancementType.CHALLENGE, false, false, false
+	);
 	public static final Advancement mergedAdvancement = new Advancement(Optional.empty(), Optional.of(mergedDisplay), AdvancementRewards.EMPTY, Map.of(), AdvancementRequirements.EMPTY, false);
 	public static final AdvancementHolder mergedEntry = new AdvancementHolder(Identifier.fromNamespaceAndPath(PlaneAdvancementsClient.MOD_ID, "merged"), mergedAdvancement);
 
@@ -68,13 +78,13 @@ public class PlaneAdvancementsClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		loadConfig();
-		ClientLifecycleEvents.CLIENT_STOPPING.register((client) -> saveConfig());
+		ClientLifecycleEvents.CLIENT_STOPPING.register(_ -> saveConfig());
 
-		treeButton = Button.builder(getTreeText(), (w) -> cycleTreeType()).bounds(0,0,16,16).build();
-		lineButton = Button.builder(getLineText(), (w) -> cycleLineType()).bounds(80,0,16,16).build();
+		treeButton = Button.builder(getTreeText(), _ -> cycleTreeType()).bounds(0,0,16,16).build();
+		lineButton = Button.builder(getLineText(), _ -> cycleLineType()).bounds(80,0,16,16).build();
 		repulsionSlider = new CallableSlider(16, 0, 64, 16, PlaneAdvancementsClient::getRepulsionText, Mth.sqrt(repulsion), (v) -> repulsion = Math.max((float)(v * v), 0.01f));
 		gridWidthSlider = new CallableSlider(16, 0, 64, 16, PlaneAdvancementsClient::getGridWidthText, (gridWidth - 2) / 14d, (v) -> gridWidth = (int)Math.round(v*14 + 2));
-		mergedButton = Button.builder(getMergedText(), (w) -> cycleMerged()).bounds(96,0,16,16).build();
+		mergedButton = Button.builder(getMergedText(), _ -> cycleMerged()).bounds(96,0,16,16).build();
 
 		setUIActive();
 	}
@@ -123,10 +133,6 @@ public class PlaneAdvancementsClient implements ClientModInitializer {
 		return treeButton.isHovered() || lineButton.isHovered() || repulsionSlider.isHovered() || gridWidthSlider.isHovered() || mergedButton.isHovered();
 	}
 
-	public static boolean selectedUI() {
-		return treeButton.isFocused() || lineButton.isFocused() || repulsionSlider.isFocused() || gridWidthSlider.isFocused() || mergedButton.isFocused();
-	}
-
 	public static void clearUIHover() {
 		treeButton.setFocused(false);
 		lineButton.setFocused(false);
@@ -135,14 +141,14 @@ public class PlaneAdvancementsClient implements ClientModInitializer {
 		mergedButton.setFocused(false);
 	}
 
-	public static void renderUI(GuiGraphics context, int mouseX, int mouseY, float tickDelta) {
-		treeButton.render(context, mouseX, mouseY, tickDelta);
+	public static void renderUI(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float tickDelta) {
+		treeButton.extractRenderState(graphics, mouseX, mouseY, tickDelta);
 		if (treeType == TreeType.SPRING) {
-			lineButton.render(context, mouseX, mouseY, tickDelta);
-			repulsionSlider.render(context, mouseX, mouseY, tickDelta);
-			mergedButton.render(context, mouseX, mouseY, tickDelta);
+			lineButton.extractRenderState(graphics, mouseX, mouseY, tickDelta);
+			repulsionSlider.extractWidgetRenderState(graphics, mouseX, mouseY, tickDelta);
+			mergedButton.extractRenderState(graphics, mouseX, mouseY, tickDelta);
 		} if (treeType == TreeType.GRID) {
-			gridWidthSlider.render(context, mouseX, mouseY, tickDelta);
+			gridWidthSlider.extractRenderState(graphics, mouseX, mouseY, tickDelta);
 		}
 	}
 

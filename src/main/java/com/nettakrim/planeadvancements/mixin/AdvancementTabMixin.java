@@ -2,6 +2,7 @@ package com.nettakrim.planeadvancements.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.nettakrim.planeadvancements.*;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -15,7 +16,6 @@ import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementNode;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.advancements.AdvancementTab;
 import net.minecraft.client.gui.screens.advancements.AdvancementWidget;
 import net.minecraft.client.gui.screens.advancements.AdvancementsScreen;
@@ -52,8 +52,8 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
     @Unique private AdvancementWidget rootBackup = null;
     @Unique private Map<AdvancementHolder, AdvancementWidgetInterface> widgetsBackup = null;
 
-    @Inject(at = @At("HEAD"), method = "drawContents")
-    private void render(GuiGraphics context, int x, int y, CallbackInfo ci) {
+    @Inject(at = @At("HEAD"), method = "extractContents")
+    private void render(GuiGraphicsExtractor graphics, int windowLeft, int windowTop, CallbackInfo ci) {
         if (!centered) {
             planeAdvancements$heatGraph();
             if (PlaneAdvancementsClient.treeType == TreeType.SPRING) {

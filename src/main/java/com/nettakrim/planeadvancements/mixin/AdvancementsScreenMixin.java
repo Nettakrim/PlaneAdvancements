@@ -3,7 +3,7 @@ package com.nettakrim.planeadvancements.mixin;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.nettakrim.planeadvancements.*;
 import net.minecraft.advancements.*;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.advancements.AdvancementTab;
 import net.minecraft.client.gui.screens.advancements.AdvancementsScreen;
@@ -33,13 +33,13 @@ public abstract class AdvancementsScreenMixin extends Screen implements Fullscre
     }
 
     @Inject(at = @At("HEAD"), method = "mouseClicked", cancellable = true)
-    void click(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
+    void click(MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
         PlaneAdvancementsClient.draggedWidget = null;
 
-        if (selectedTab == null || click.button() != 1) {
+        if (selectedTab == null || event.button() != 1) {
             PlaneAdvancementsClient.clearUIHover();
             if (PlaneAdvancementsClient.hoveredUI()) {
-                super.mouseClicked(click, doubled);
+                super.mouseClicked(event, doubleClick);
                 cir.setReturnValue(null);
             }
             return;
@@ -51,11 +51,11 @@ public abstract class AdvancementsScreenMixin extends Screen implements Fullscre
         int x;
         int y;
         if (CompatMode.getCompatMode() == CompatMode.FULLSCREEN) {
-            x = Mth.floor(click.x()-((this.width - _advancements_fullscreen_getFullscreenWindowWidth()) >> 1)-9);
-            y = Mth.floor(click.y()-((this.height - _advancements_fullscreen_getFullscreenWindowHeight()) >> 1)-18);
+            x = Mth.floor(event.x()-((this.width - _advancements_fullscreen_getFullscreenWindowWidth()) >> 1)-9);
+            y = Mth.floor(event.y()-((this.height - _advancements_fullscreen_getFullscreenWindowHeight()) >> 1)-18);
         } else {
-            x = Mth.floor(click.x()-((this.width - 252) >> 1)-9);
-            y = Mth.floor(click.y()-((this.height - 140) >> 1)-18);
+            x = Mth.floor(event.x()-((this.width - 252) >> 1)-9);
+            y = Mth.floor(event.y()-((this.height - 140) >> 1)-18);
         }
 
         for (AdvancementWidgetInterface widget : tab.planeAdvancements$getWidgets().values()) {
@@ -73,21 +73,21 @@ public abstract class AdvancementsScreenMixin extends Screen implements Fullscre
     }
 
     @Inject(at = @At("HEAD"), method = "mouseDragged", cancellable = true)
-    void drag(MouseButtonEvent click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
+    void drag(MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
         if (PlaneAdvancementsClient.draggedWidget == null || PlaneAdvancementsClient.treeType != TreeType.SPRING) {
             if (PlaneAdvancementsClient.hoveredUI()) {
-                cir.setReturnValue(super.mouseDragged(click, offsetX, offsetY));
+                cir.setReturnValue(super.mouseDragged(event, dx, dy));
             }
             return;
         }
-        PlaneAdvancementsClient.draggedWidget.planeAdvancements$getTreePos().add((float)offsetX, (float)offsetY);
+        PlaneAdvancementsClient.draggedWidget.planeAdvancements$getTreePos().add((float) dx, (float) dy);
         PlaneAdvancementsClient.draggedWidget.planeAdvancements$updatePos();
         assert selectedTab != null;
         ((AdvancementTabInterface)selectedTab).planeAdvancements$heatGraph();
         cir.setReturnValue(true);
     }
 
-    @ModifyExpressionValue(at = @At(value = "INVOKE", target = "Ljava/util/Map;size()I"), method = "renderWindow")
+    @ModifyExpressionValue(at = @At(value = "INVOKE", target = "Ljava/util/Map;size()I"), method = "extractWindow")
     int hideTabs(int original) {
         if (PlaneAdvancementsClient.isMergedAndSpring()) {
             return 0;
@@ -95,8 +95,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Fullscre
         return original;
     }
 
-    @Inject(at = @At("HEAD"), method = "render")
-    void merge(GuiGraphics context, int mouseX, int mouseY, float tickDelta, CallbackInfo ci) {
+    @Inject(at = @At("HEAD"), method = "extractRenderState")
+    void merge(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
         if(selectedTab != null) {
             if (PlaneAdvancementsClient.isMergedAndSpring()) {
                 ((AdvancementTabInterface)selectedTab).planeAdvancements$setMerged(tabs.values());
@@ -106,9 +106,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Fullscre
         }
     }
 
-    @Inject(at = @At("TAIL"), method = "render")
-    void render(GuiGraphics context, int mouseX, int mouseY, float tickDelta, CallbackInfo ci) {
-        PlaneAdvancementsClient.renderUI(context, mouseX, mouseY, tickDelta);
+    @Inject(at = @At("TAIL"), method = "extractRenderState")
+    void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
+        PlaneAdvancementsClient.renderUI(graphics, mouseX, mouseY, a);
     }
 
     @Inject(at = @At("TAIL"), method = "init")

@@ -18,7 +18,7 @@ import net.minecraft.advancements.AdvancementNode;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
@@ -50,13 +50,13 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
 
     @Shadow public abstract boolean isMouseOver(double scrollX, double scrollY, double mouseX, double mouseY, float zoom);
 
-    @Shadow public abstract void drawConnectivity(GuiGraphics context, int x, int y, boolean border);
+    @Shadow public abstract void drawConnectivity(GuiGraphicsExtractor graphics, int x, int y, boolean border);
 
-    @Inject(at = @At("TAIL"), method = "<init>", remap = true)
+    @Inject(at = @At("TAIL"), method = "<init>")
     void initPos(@Coerce AdvancementTabInterface tab, Minecraft client, AdvancementNode advancement, DisplayInfo display, CallbackInfo ci) {
         defaultPos = new Vector2f(x, y);
         gridPos = new Vector2f(x, y);
-        treePos = PlaneAdvancementsClient.positions.computeIfAbsent(advancement.advancement(), k -> new TreePosition());
+        treePos = PlaneAdvancementsClient.positions.computeIfAbsent(advancement.advancement(), _ -> new TreePosition());
 
         try {
             //noinspection ReferenceToMixin
@@ -64,33 +64,33 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
         } catch (Exception ignored) {}
     }
 
-    @WrapMethod(method = "drawConnectivity", remap = true)
-    private void removeGridRoots(GuiGraphics context, int x, int y, boolean border, Operation<Void> original) {
+    @WrapMethod(method = "drawConnectivity")
+    private void removeGridRoots(GuiGraphicsExtractor graphics, int x, int y, boolean border, Operation<Void> original) {
         // remove root lines for grid mode
         if (isClusterRoot && PlaneAdvancementsClient.treeType == TreeType.GRID) {
             for (AdvancementWidgetInterface advancementWidget : children) {
-                advancementWidget.planeAdvancements$renderLines(context, x, y, border);
+                advancementWidget.planeAdvancements$renderLines(graphics, x, y, border);
             }
             return;
         }
 
-        original.call(context, x, y, border);
+        original.call(graphics, x, y, border);
     }
 
-    @WrapMethod(method = "drawConnection", remap = true)
-    private void drawLines(GuiGraphics context, @Coerce AdvancementWidgetInterface parent, int x, int y, boolean border, Operation<Void> original) {
+    @WrapMethod(method = "drawConnection")
+    private void drawLines(GuiGraphicsExtractor graphics, @Coerce AdvancementWidgetInterface parent, int x, int y, boolean border, Operation<Void> original) {
         if (PlaneAdvancementsClient.getCurrentLineType() == LineType.DEFAULT) {
-            original.call(context, parent, x, y, border);
+            original.call(graphics, parent, x, y, border);
             return;
         }
 
         if (parent != null) {
             int innerColor = advancementProgress != null && advancementProgress.isDone() ? betterDisplayInfoAccessor.callGetCompletedLineColor() : betterDisplayInfoAccessor.callGetUnCompletedLineColor();
-            AdvancementWidgetInterface.renderCustomLines(context, x, y, this.x, this.y, parent.planeAdvancements$getX(), parent.planeAdvancements$getY(), border, innerColor);
+            AdvancementWidgetInterface.renderCustomLines(graphics, x, y, this.x, this.y, parent.planeAdvancements$getX(), parent.planeAdvancements$getY(), border, innerColor);
         }
     }
 
-    @ModifyReturnValue(at = @At("RETURN"), method = "isMouseOver", remap = true)
+    @ModifyReturnValue(at = @At("RETURN"), method = "isMouseOver")
     private boolean forceTooltipIfDragged(boolean original) {
         if (PlaneAdvancementsClient.draggedWidget != null) {
             return PlaneAdvancementsClient.draggedWidget == this;
@@ -98,7 +98,7 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
         return original;
     }
 
-    @ModifyExpressionValue(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/advancements/AdvancementWidgetType;frameSprite(Lnet/minecraft/advancements/AdvancementType;)Lnet/minecraft/resources/Identifier;"), method = {"draw","drawHover"}, remap = true)
+    @ModifyExpressionValue(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/advancements/AdvancementWidgetType;frameSprite(Lnet/minecraft/advancements/AdvancementType;)Lnet/minecraft/resources/Identifier;"), method = {"draw","drawHover"})
     private Identifier replaceMergeRoot(Identifier original) {
         if (PlaneAdvancementsClient.isMergedAndSpring() && parent == null) {
             return Identifier.fromNamespaceAndPath(PlaneAdvancementsClient.MOD_ID,"merged");
@@ -106,7 +106,7 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
         return original;
     }
 
-    @Inject(at = @At("TAIL"), method = "attachToParent", remap = true)
+    @Inject(at = @At("TAIL"), method = "attachToParent")
     private void setParent(CallbackInfo ci) {
         try {
             parent = (AdvancementWidgetInterface)this.getClass().getDeclaredField("parent").get(this);
@@ -211,7 +211,7 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
     }
 
     @Override
-    public void planeAdvancements$renderLines(GuiGraphics context, int x, int y, boolean border) {
-        drawConnectivity(context, x, y, border);
+    public void planeAdvancements$renderLines(GuiGraphicsExtractor graphics, int x, int y, boolean border) {
+        drawConnectivity(graphics, x, y, border);
     }
 }
