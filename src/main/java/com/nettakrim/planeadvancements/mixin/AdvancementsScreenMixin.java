@@ -20,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.lang.reflect.Method;
 import java.util.Map;
 
 @Mixin(AdvancementsScreen.class)
@@ -119,9 +118,5 @@ public abstract class AdvancementsScreenMixin extends Screen implements Fullscre
         addWidget(PlaneAdvancementsClient.gridWidthSlider);
         addWidget(PlaneAdvancementsClient.lineButton);
         addWidget(PlaneAdvancementsClient.mergedButton);
-
-        for (Method method : this.getClass().getDeclaredMethods()) {
-            PlaneAdvancementsClient.LOGGER.info(method.getName());
-        }
     }
 }
