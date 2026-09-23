@@ -187,7 +187,7 @@ public abstract class BetterAdvancementWidgetMixin implements AdvancementWidgetI
 
     @Override
     public boolean planeAdvancements$isRoot() {
-        return displayInfo.getX() == 0;
+        return advancementNode.x() == 0;
     }
 
     @Override

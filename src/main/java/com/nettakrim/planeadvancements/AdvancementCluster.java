@@ -38,8 +38,8 @@ public class AdvancementCluster {
         float heightMax = 0;
         float heightMin = 0;
 
-        float rootX = root.planeAdvancements$getDisplay().getX()-1;
-        float rootY = root.planeAdvancements$getDisplay().getY();
+        float rootX = root.planeAdvancements$getPlaced().x()-1;
+        float rootY = root.planeAdvancements$getPlaced().y();
 
         Stack<AdvancementWidgetInterface> stack = new Stack<>();
         stack.addAll(root.planeAdvancements$getChildren());
@@ -49,12 +49,12 @@ public class AdvancementCluster {
                 stack.addAll(advancement.planeAdvancements$getChildren());
             }
 
-            float width = advancement.planeAdvancements$getDisplay().getX()-rootX;
+            float width = advancement.planeAdvancements$getPlaced().x()-rootX;
             if (width > widthMax) {
                 widthMax = width;
             }
 
-            float height = advancement.planeAdvancements$getDisplay().getY()-rootY;
+            float height = advancement.planeAdvancements$getPlaced().y()-rootY;
             if (height > heightMax) {
                 heightMax = height;
             }

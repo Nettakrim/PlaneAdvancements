@@ -17,7 +17,6 @@ import java.util.List;
 import net.minecraft.advancements.AdvancementNode;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.advancements.AdvancementTab;
 import net.minecraft.client.gui.screens.advancements.AdvancementWidget;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
@@ -46,7 +45,7 @@ public abstract class AdvancementWidgetMixin implements AdvancementWidgetInterfa
     @Shadow public abstract void extractConnectivity(GuiGraphicsExtractor graphics, int xo, int yo, boolean background);
 
     @Inject(at = @At("TAIL"), method = "<init>")
-    void initPos(AdvancementTab tab, Minecraft minecraft, AdvancementNode advancementNode, DisplayInfo display, CallbackInfo ci) {
+    void initPos(Minecraft minecraft, AdvancementNode advancementNode, DisplayInfo display, CallbackInfo ci) {
         defaultPos = new Vector2f(x, y);
         gridPos = new Vector2f(x, y);
         treePos = PlaneAdvancementsClient.positions.computeIfAbsent(advancementNode.advancement(), _ -> new TreePosition());
@@ -163,7 +162,7 @@ public abstract class AdvancementWidgetMixin implements AdvancementWidgetInterfa
 
     @Override
     public boolean planeAdvancements$isRoot() {
-        return display.getX() == 0;
+        return advancementNode.x() == 0;
     }
 
     @Override

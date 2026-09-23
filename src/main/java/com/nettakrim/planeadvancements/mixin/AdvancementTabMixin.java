@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementNode;
-import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.advancements.AdvancementTab;
 import net.minecraft.client.gui.screens.advancements.AdvancementWidget;
@@ -28,8 +27,6 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
     private Map<AdvancementHolder, AdvancementWidgetInterface> widgets;
 
     @Shadow @Final @Mutable private AdvancementWidget root;
-    @Shadow @Final @Mutable private AdvancementNode rootNode;
-    @Shadow @Final @Mutable private DisplayInfo display;
 
     @Shadow private int minX;
     @Shadow private int maxX;
@@ -238,8 +235,7 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
         widgetsBackup = widgets;
         widgets = new HashMap<>(widgetsBackup);
         AdvancementNode placedAdvancement = new AdvancementNode(PlaneAdvancementsClient.mergedEntry, null);
-        AdvancementWidget newRoot = new AdvancementWidget((AdvancementTab)(Object)this, Minecraft.getInstance(), placedAdvancement, PlaneAdvancementsClient.mergedDisplay);
-        //noinspection DataFlowIssue
+        AdvancementWidget newRoot = AdvancementWidget.createWidget(Minecraft.getInstance(), placedAdvancement);
         AdvancementWidgetInterface newRootInterface = (AdvancementWidgetInterface)newRoot;
 
         tabs.forEach(tab -> {
@@ -252,8 +248,6 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
 
         rootBackup = root;
         root = newRoot;
-        display = PlaneAdvancementsClient.mergedDisplay;
-        rootNode = placedAdvancement;
 
         planeAdvancements$centerPan(planeAdvancements$getWidth(), planeAdvancements$getHeight());
 
@@ -270,8 +264,6 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
         widgetsBackup = null;
 
         root = rootBackup;
-        display = ((AdvancementWidgetInterface)root).planeAdvancements$getDisplay();
-        rootNode = ((AdvancementWidgetInterface)root).planeAdvancements$getPlaced();
 
         tabs.forEach(tab -> {
             AdvancementWidgetInterface tabRoot = tab.planeAdvancements$getRoot();
@@ -289,7 +281,7 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
     private int planeAdvancements$getWidth() {
         if (CompatMode.getCompatMode() == CompatMode.FULLSCREEN) {
             FullscreenInterface i = (FullscreenInterface)screen;
-            return (i._advancements_fullscreen_getFullscreenWindowWidth() >> 1);
+            return (i.advancements_fullscreen$getFullscreenWindowWidth() >> 1);
         } else {
             return 117;
         }
@@ -299,7 +291,7 @@ public abstract class AdvancementTabMixin implements AdvancementTabInterface {
     private int planeAdvancements$getHeight() {
         if (CompatMode.getCompatMode() == CompatMode.FULLSCREEN) {
             FullscreenInterface i = (FullscreenInterface)screen;
-            return (i._advancements_fullscreen_getFullscreenWindowHeight() >> 1);
+            return (i.advancements_fullscreen$getFullscreenWindowHeight() >> 1);
         } else {
             return 56;
         }
